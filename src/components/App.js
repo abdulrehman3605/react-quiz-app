@@ -1,40 +1,38 @@
-import { useEffect, useReducer } from "react";
 import Header from "./Header";
 import Main from "./Main";
-
-const initialState = {
-  quesion: [],
-
-  status: "loading",
-};
-
-function reducer(state, action) {
-  switch (action.type) {
-    case "dataRecieved":
-      return { ...state, questions: action.payload, status: "ready" };
-    case "dataFailed":
-      return { ...state, status: "error" };
-    default:
-      throw new Error("case not exists");
-  }
-}
+import Loader from "./Loader";
+import Error from "./Error";
+import StartScreen from "./StartScreen";
+import Question from "./Question";
+import NextButton from "./NextButton";
+import Progress from "./Progress";
+import FinishScreen from "./FinishScreen";
+import Footer from "./Footer";
+import Timer from "./Timer";
+import { useQuiz } from "../contexts/QuizContext";
 
 export default function App() {
-  const [state, dispatch] = useReducer(reducer, initialState);
-
-  useEffect(() => {
-    fetch("http://localhost:9000/questions")
-      .then((res) => res.json())
-      .then((data) => dispatch({ type: "dataRecieved", payload: data }))
-      .catch((err) => dispatch({ type: "dataFailed" }));
-  }, []);
+  const { status } = useQuiz();
 
   return (
     <div className="app">
       <Header />
+
       <Main>
-        <p>1/15</p>
-        <p>Next</p>
+        {status === "loading" && <Loader />}
+        {status === "error" && <Error />}
+        {status === "ready" && <StartScreen />}
+        {status === "active" && (
+          <>
+            <Progress />
+            <Question />
+            <Footer>
+              <Timer />
+              <NextButton />
+            </Footer>
+          </>
+        )}
+        {status === "finished" && <FinishScreen />}
       </Main>
     </div>
   );
